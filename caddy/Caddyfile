@@ -1,0 +1,60 @@
+{
+	email admin@haltman.io
+
+	on_demand_tls {
+		ask http://127.0.0.1:9000/ask
+	}
+}
+
+(mail_forwarding_site) {
+	root * /var/www/mail-forwarding/current
+
+	handle /domains {
+		reverse_proxy 127.0.0.1:9090
+	}
+
+	handle /stats {
+		reverse_proxy 127.0.0.1:9090
+	}
+
+	handle /forward/* {
+		reverse_proxy 127.0.0.1:9090
+	}
+
+	handle /request/ui {
+		reverse_proxy 127.0.0.1:9090
+	}
+
+	handle /request/email {
+		reverse_proxy 127.0.0.1:9090
+	}
+
+	handle /api/* {
+		reverse_proxy 127.0.0.1:9090
+	}
+
+	handle /auth/* {
+		reverse_proxy 127.0.0.1:9090
+	}
+
+	handle {
+		try_files {path}.html {path}/index.html {path}
+		file_server
+	}
+}
+
+:80 {
+	redir https://{host}{uri} permanent
+}
+
+forward.haltman.io {
+	import mail_forwarding_site
+}
+
+:443 {
+	tls {
+		on_demand
+	}
+
+	import mail_forwarding_site
+}
